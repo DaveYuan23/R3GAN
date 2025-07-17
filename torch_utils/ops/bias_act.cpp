@@ -8,7 +8,7 @@
 
 #include <torch/extension.h>
 #include <ATen/hip/HIPContext.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 #include "bias_act.h"
 
 //------------------------------------------------------------------------
@@ -51,7 +51,7 @@ static torch::Tensor bias_act(torch::Tensor x, torch::Tensor b, torch::Tensor xr
     TORCH_CHECK(dy.numel() == 0 || has_same_layout(dy, x), "dy must have the same layout as x");
 
     // Create output tensor.
-    const at::hip::OptionalHIPGuard device_guard(device_of(x));
+    const c10::hip::HIPGuard device_guard(device_of(x));
     torch::Tensor y = torch::empty_like(x);
     TORCH_CHECK(has_same_layout(y, x), "y must have the same layout as x");
 
@@ -85,7 +85,7 @@ static torch::Tensor bias_act(torch::Tensor x, torch::Tensor b, torch::Tensor xr
     int blockSize = 4 * 32;
     int gridSize = (p.sizeX - 1) / (p.loopX * blockSize) + 1;
     void* args[] = {&p};
-    AT_HIP_CHECK(hipLaunchKernel(kernel, gridSize, blockSize, args, 0, at::hip::getCurrentHIPStreamMasqueradingAsCUDA()));
+    C10_HIP_CHECK(hipLaunchKernel(kernel, gridSize, blockSize, args, 0, at::hip::getCurrentHIPStreamMasqueradingAsCUDA()));
     return y;
 }
 
