@@ -6,7 +6,11 @@
 // distribution of this software and related documentation without an express
 // license agreement from NVIDIA CORPORATION is strictly prohibited.
 
+#if defined(__HIP_PLATFORM_HCC__)
+#include <hip/hip_runtime.h>
+#else
 #include <cuda_runtime.h>
+#endif
 
 //------------------------------------------------------------------------
 // CUDA kernel parameters.

@@ -9,6 +9,10 @@
 //------------------------------------------------------------------------
 // CUDA kernel parameters.
 
+#if defined(__HIP_PLATFORM_HCC__) 
+#include <hip/hip_runtime.h>
+#endif
+
 struct bias_act_kernel_params
 {
     const void* x;      // [sizeX]
