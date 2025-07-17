@@ -42,6 +42,8 @@ def _find_compiler_bindir():
 #----------------------------------------------------------------------------
 
 def _get_mangled_gpu_name():
+    if torch.version.hip:
+        return 'hip'
     name = torch.cuda.get_device_name().lower()
     out = []
     for c in name:
