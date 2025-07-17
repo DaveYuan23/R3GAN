@@ -7,7 +7,7 @@
 // license agreement from NVIDIA CORPORATION is strictly prohibited.
 
 #include <torch/extension.h>
-#include <ATen/cuda/CUDAContext.h>
+#include <ATen/hip/HIPContext.h>
 #include <c10/cuda/CUDAGuard.h>
 #include "bias_act.h"
 
@@ -32,7 +32,7 @@ static bool has_same_layout(torch::Tensor x, torch::Tensor y)
 static torch::Tensor bias_act(torch::Tensor x, torch::Tensor b, torch::Tensor xref, torch::Tensor yref, torch::Tensor dy, int grad, int dim, int act, float alpha, float gain, float clamp)
 {
     // Validate arguments.
-    TORCH_CHECK(x.is_cuda(), "x must reside on CUDA device");
+    TORCH_CHECK(x.is_hip(), "x must reside on HIP device");
     TORCH_CHECK(b.numel() == 0 || (b.dtype() == x.dtype() && b.device() == x.device()), "b must have the same dtype and device as x");
     TORCH_CHECK(xref.numel() == 0 || (xref.sizes() == x.sizes() && xref.dtype() == x.dtype() && xref.device() == x.device()), "xref must have the same shape, dtype, and device as x");
     TORCH_CHECK(yref.numel() == 0 || (yref.sizes() == x.sizes() && yref.dtype() == x.dtype() && yref.device() == x.device()), "yref must have the same shape, dtype, and device as x");
@@ -51,7 +51,7 @@ static torch::Tensor bias_act(torch::Tensor x, torch::Tensor b, torch::Tensor xr
     TORCH_CHECK(dy.numel() == 0 || has_same_layout(dy, x), "dy must have the same layout as x");
 
     // Create output tensor.
-    const at::cuda::OptionalCUDAGuard device_guard(device_of(x));
+    const at::hip::OptionalHIPGuard device_guard(device_of(x));
     torch::Tensor y = torch::empty_like(x);
     TORCH_CHECK(has_same_layout(y, x), "y must have the same layout as x");
 
@@ -85,7 +85,7 @@ static torch::Tensor bias_act(torch::Tensor x, torch::Tensor b, torch::Tensor xr
     int blockSize = 4 * 32;
     int gridSize = (p.sizeX - 1) / (p.loopX * blockSize) + 1;
     void* args[] = {&p};
-    AT_CUDA_CHECK(hipLaunchKernel(kernel, gridSize, blockSize, args, 0, at::hip::getCurrentHIPStreamMasqueradingAsCUDA()));
+    AT_HIP_CHECK(hipLaunchKernel(kernel, gridSize, blockSize, args, 0, at::hip::getCurrentHIPStreamMasqueradingAsCUDA()));
     return y;
 }
 

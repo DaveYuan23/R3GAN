@@ -29,7 +29,7 @@ def _init():
                 sources=['upfirdn2d.cpp', 'upfirdn2d.hip.cpp'],
                 headers=['upfirdn2d.h'],
                 source_dir=os.path.dirname(__file__),
-                extra_cuda_cflags=['--hipcc-func-styles=pytorch', '--hipstdpar'],
+                extra_cuda_cflags=['--hipcc-func-styles=pytorch', '--hipstdpar'] if torch.version.hip else ['--use_fast_math', '--allow-unsupported-compiler'],
             )
         else:
             _plugin = custom_ops.get_plugin(
