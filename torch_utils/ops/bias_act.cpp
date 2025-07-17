@@ -85,7 +85,7 @@ static torch::Tensor bias_act(torch::Tensor x, torch::Tensor b, torch::Tensor xr
     int blockSize = 4 * 32;
     int gridSize = (p.sizeX - 1) / (p.loopX * blockSize) + 1;
     void* args[] = {&p};
-    AT_CUDA_CHECK(cudaLaunchKernel(kernel, gridSize, blockSize, args, 0, at::cuda::getCurrentCUDAStream()));
+    AT_CUDA_CHECK(hipLaunchKernel(kernel, gridSize, blockSize, args, 0, at::hip::getCurrentHIPStreamMasqueradingAsCUDA()));
     return y;
 }
 
